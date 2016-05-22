@@ -75,6 +75,8 @@ Player.prototype.reset = function(){
 	// Initial location
 	this.x = this.width * 2;
 	this.y = this.height * 6 - 50;
+	
+	makeItems();
 };
 
 Player.prototype.update = function() {
@@ -130,8 +132,101 @@ Player.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
+/**
+ * An item on the map.
+ * 
+ * Items can be either Structures that cannot picked up but may allow some interaction, or
+ * Pickups which are consumed by the user when touched. 
+ */
+var Item = function(){
+	this.sprite = null;
+}
+Item.prototype.render = function(){
+	ctx.drawImage(Resources.get(this.sprite), this.x, this.y, this.width, this.height);
+}
+
+/**
+ * An immobile structure on the map.
+ * 
+ * This is an Item that is typically considered some physical part of the map. They may allow some
+ * interaction, such as moving or consuming, but some such as Rocks are just there as obstacles.
+ */
+var Structure = function(){
+	
+}
+Structure.prototype = Object.create(Item.prototype);
+Structure.prototype.constructor = Structure;
+
+/**
+ * A rock obstacle
+ * 
+ * This kind of Structure is an immobile one that makes the user choose other paths.
+ */
+var Rock = function(){
+	this.sprite = 'images/Rock.png';
+}
+Rock.prototype = Object.create(Structure.prototype);
+Rock.prototype.constructor = Rock;
+
+/**
+ * An Item that can consumed by a player
+ * 
+ * Pickups are Items that the user touches and immediately uses. They typically have beneficial properties,
+ * but that is not a requirement.
+ */
+var Pickup = function(){
+	
+}
+Pickup.prototype = Object.create(Item.prototype);
+Pickup.prototype.constructor = Pickup;
+
+/**
+ * A gem pickup
+ * 
+ * A user can pick up a gem for extra points
+ */
+var Gem = function(){
+	this.width = 101;
+	this.height = 95;
+	
+	this.x = this.width * Math.floor((Math.random() * 5));
+	this.y = this.height * Math.floor((Math.random() * 3) + 1);
+	
+	this.spriteList = [
+	   'images/Gem Blue.png',
+	   'images/Gem Green.png',
+	   'images/Gem Orange.png'
+	];
+	this.sprite = '';
+	this.points = 0;
+	
+	this.getSprite = function(){
+		var spriteIndex = Math.round(Math.random() * (this.spriteList.length - 1));
+		this.sprite = this.spriteList[spriteIndex];
+		this.points = 100 * (this.spriteIndex);
+	};
+	
+	this.getSprite();
+}
+Gem.prototype = Object.create(Pickup.prototype);
+Gem.prototype.constructor = Gem;
+
 player = new Player;
 allEnemies = [];
+var gameData = {
+	allItems : []	
+}
+makeItems();
+
+function makeItems(){
+	if(gameData && gameData.allItems){
+		var gemCount;
+		gameData.allItems = [];
+		for(gemCount = 0; gemCount <= 5; gemCount++){
+			gameData.allItems.push(new Gem);
+		}
+	}	
+};
 
 window.setInterval(function(){
 	
