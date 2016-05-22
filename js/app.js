@@ -11,7 +11,7 @@ var Enemy = function() {
 	
 	// Initial location
 	this.x = -this.width;
-	this.y = this.height * Math.floor((Math.random() * 3) + 1);
+	this.y = (this.height - 2) * Math.floor((Math.random() * 3) + 1);
 	// Initial speed
 	this.speed = 1;
 	this.speed = (Math.random() + 1) * this.speed * 200;
@@ -25,8 +25,10 @@ Enemy.prototype.update = function(dt) {
     // all computers.
 	this.x += this.speed * dt;
 	
+	var collisionOffset = 40;
+	
 	// Handle Collisions
-	if((player.x > this.x && player.x < this.x + this.width) && (player.y > this.y && player.y < this.height + this.y)){
+	if((player.x > this.x - collisionOffset && player.x < this.x - collisionOffset + this.width) && (player.y > this.y - collisionOffset && player.y < this.height + this.y - collisionOffset)){
 		player.reset();
 	}
 	
@@ -48,6 +50,7 @@ var Player = function(){
 	this.sprite = 'images/char-boy.png';
 	this.width = 101;
 	this.height = 75;
+	this.verticalOffset = 15;
 	
 	// Initial location
 	this.reset();
@@ -61,7 +64,9 @@ Player.prototype.reset = function(){
 };
 
 Player.prototype.update = function() {
-
+	if(this.y <= this.verticalOffset){
+		this.reset();
+	}
 }
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
@@ -85,15 +90,15 @@ Player.prototype.handleInput = function(input){
 			}
 		break;
 		case 'up':
-			var position = this.y - this.height - 15;
-			if(position > 0){
+			var position = this.y - this.height - this.verticalOffset;
+			if(position > -this.height){ // Allow player to potentially stand in water
 				this.y = position;
 				this.update();
 			}
 		break;
 		case 'down':
-			var position = this.y + this.height + 15;
-			if(position < ctx.canvas.height){
+			var position = this.y + this.height + this.verticalOffset;
+			if(position < ctx.canvas.height -  2 * this.height){
 				this.y = position;
 				this.update();
 			}
@@ -115,7 +120,9 @@ allEnemies = [];
 
 window.setInterval(function(){
 	
-	allEnemies.push(new Enemy);
+	if(allEnemies.length < 6){
+		allEnemies.push(new Enemy);
+	}
 	
 }, 1000);
 
