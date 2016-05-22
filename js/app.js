@@ -29,6 +29,10 @@ Enemy.prototype.update = function(dt) {
 	if((player.x > this.x && player.x < this.x + this.width) && (player.y > this.y && player.y < this.height + this.y)){
 		player.reset();
 	}
+	
+	if(this.x > ctx.canvas.width + this.width){
+		allEnemies.splice(allEnemies.indexOf(this), 1);
+	}
 };
 
 // Draw the enemy on the screen, required method for game
