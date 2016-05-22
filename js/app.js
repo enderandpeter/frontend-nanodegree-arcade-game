@@ -8,6 +8,7 @@ var Enemy = function() {
     this.sprite = 'images/enemy-bug.png';
 	this.width = 101;
 	this.height = 75;
+	this.pointDamage = 500;
 	
 	// Initial location
 	this.x = -this.width;
@@ -29,7 +30,7 @@ Enemy.prototype.update = function(dt) {
 	
 	// Handle Collisions
 	if((player.x > this.x - collisionOffset && player.x < this.x - collisionOffset + this.width) && (player.y > this.y - collisionOffset && player.y < this.height + this.y - collisionOffset)){
-		player.setScore(player.score - 100);
+		player.setScore(player.score - this.pointDamage);
 		player.reset();
 	}
 	
@@ -154,10 +155,12 @@ Item.prototype.render = function(){
 }
 
 Item.prototype.getGridX = function(){
-	return Math.floor(Math.random() * 5);
+	this.gridX = Math.floor(Math.random() * 5); 
+	return this.gridX;
 }
 Item.prototype.getGridY = function (){
-	return Math.floor((Math.random() * 3) + 1);
+	this.gridY = Math.floor((Math.random() * 3) + 1); 
+	return this.gridY;
 }
 
 Item.prototype.gridX = null;
@@ -220,11 +223,8 @@ var Gem = function(){
 	this.width = 101;
 	this.height = 95;
 	
-	this.gridX = this.getGridX();
-	this.gridY = this.getGridY();
-	
-	this.x = this.width * this.gridX;
-	this.y = this.height * this.gridY;
+	this.x = this.width * this.getGridX();
+	this.y = this.height * this.getGridY();
 	
 	this.spriteList = [
 	   'images/Gem Blue.png',
@@ -254,7 +254,16 @@ function drawItems(){
 	if(gameData && gameData.allItems){
 		var gemCount;
 		for(gemCount = 0; gemCount <= 5; gemCount++){
-			gameData.allItems.push(new Gem);
+			var gem;
+			var gemExists = true;			
+			while(gemExists){
+				gem = new Gem;
+				gemExists = gameData.allItems.some(function(item){
+					return item.gridX === gem.gridX && item.gridY === gem.gridY; 
+				});
+			}
+			
+			gameData.allItems.push(gem);
 		}
 	}	
 };
