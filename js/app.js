@@ -29,6 +29,7 @@ Enemy.prototype.update = function(dt) {
 	
 	// Handle Collisions
 	if((player.x > this.x - collisionOffset && player.x < this.x - collisionOffset + this.width) && (player.y > this.y - collisionOffset && player.y < this.height + this.y - collisionOffset)){
+		player.setScore(player.score - 100);
 		player.reset();
 	}
 	
@@ -51,6 +52,16 @@ var Player = function(){
 	this.width = 101;
 	this.height = 75;
 	this.verticalOffset = 15;
+	this.score = 0;
+	this.setScore = function(newScore){
+		this.score = newScore;
+		var scoreBoardElement = document.querySelector(this.viewIds.scoreBoardId);
+		scoreBoardElement.textContent = this.score;
+	};
+	this.viewIds = {
+		scoreBoardId : '#score'	
+	};
+	
 	
 	// Initial location
 	this.reset();
@@ -58,6 +69,9 @@ var Player = function(){
 };
 
 Player.prototype.reset = function(){
+	// Display current score
+	this.setScore(this.score);
+	
 	// Initial location
 	this.x = this.width * 2;
 	this.y = this.height * 6 - 50;
@@ -65,6 +79,7 @@ Player.prototype.reset = function(){
 
 Player.prototype.update = function() {
 	if(this.y <= this.verticalOffset){
+		this.setScore(this.score + 100);
 		this.reset();
 	}
 }

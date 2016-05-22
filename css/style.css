@@ -1,3 +1,21 @@
+@charset 'utf-8';
+@import url(https://fonts.googleapis.com/css?family=Chewy);
+
 body {
     text-align: center;
+}
+#dashboard{
+	margin: 0 auto;
+	position: relative;
+	top: 3em;
+	width: 505px;
+	text-align: right;
+	font-family: Chewy;
+	color: white;
+	font-size: 2em;
+}
+
+#score {
+	display: inline-block;
+	
 }
