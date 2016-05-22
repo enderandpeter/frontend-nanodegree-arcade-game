@@ -76,7 +76,7 @@ Player.prototype.reset = function(){
 	this.x = this.width * 2;
 	this.y = this.height * 6 - 50;
 	
-	makeItems();
+	resetItems();
 };
 
 Player.prototype.update = function() {
@@ -84,6 +84,14 @@ Player.prototype.update = function() {
 		this.setScore(this.score + 100);
 		this.reset();
 	}
+}
+
+Player.prototype.getGridX = function(){
+	return Math.round(this.x / this.width);
+}
+
+Player.prototype.getGridY = function(){
+	return Math.round(this.y / this.height);
 }
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
@@ -145,6 +153,16 @@ Item.prototype.render = function(){
 	ctx.drawImage(Resources.get(this.sprite), this.x, this.y, this.width, this.height);
 }
 
+Item.prototype.getGridX = function(){
+	return Math.floor(Math.random() * 5);
+}
+Item.prototype.getGridY = function (){
+	return Math.floor((Math.random() * 3) + 1);
+}
+
+Item.prototype.gridX = null;
+Item.prototype.gridY = null;
+
 /**
  * An immobile structure on the map.
  * 
@@ -179,6 +197,19 @@ var Pickup = function(){
 }
 Pickup.prototype = Object.create(Item.prototype);
 Pickup.prototype.constructor = Pickup;
+Pickup.prototype.points = 0;
+
+
+Pickup.prototype.update = function(){	
+	// Handle Collisions
+	if(this.gridX === player.getGridX() && this.gridY === player.getGridY()){
+		if(this.points){
+			player.setScore(player.score + this.points);
+		}
+		
+		gameData.allItems.splice(gameData.allItems.indexOf(this), 1);	
+	}	
+};
 
 /**
  * A gem pickup
@@ -189,21 +220,22 @@ var Gem = function(){
 	this.width = 101;
 	this.height = 95;
 	
-	this.x = this.width * Math.floor((Math.random() * 5));
-	this.y = this.height * Math.floor((Math.random() * 3) + 1);
+	this.gridX = this.getGridX();
+	this.gridY = this.getGridY();
+	
+	this.x = this.width * this.gridX;
+	this.y = this.height * this.gridY;
 	
 	this.spriteList = [
 	   'images/Gem Blue.png',
 	   'images/Gem Green.png',
 	   'images/Gem Orange.png'
 	];
-	this.sprite = '';
-	this.points = 0;
 	
 	this.getSprite = function(){
 		var spriteIndex = Math.round(Math.random() * (this.spriteList.length - 1));
 		this.sprite = this.spriteList[spriteIndex];
-		this.points = 100 * (this.spriteIndex);
+		this.points = 100 * (spriteIndex + 1);
 	};
 	
 	this.getSprite();
@@ -216,17 +248,23 @@ allEnemies = [];
 var gameData = {
 	allItems : []	
 }
-makeItems();
+resetItems();
 
-function makeItems(){
+function drawItems(){
 	if(gameData && gameData.allItems){
 		var gemCount;
-		gameData.allItems = [];
 		for(gemCount = 0; gemCount <= 5; gemCount++){
 			gameData.allItems.push(new Gem);
 		}
 	}	
 };
+
+function resetItems(){
+	if(gameData && gameData.allItems){
+		gameData.allItems = [];
+		drawItems();
+	}
+}
 
 window.setInterval(function(){
 	

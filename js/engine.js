@@ -80,7 +80,18 @@ var Engine = (function(global) {
      */
     function update(dt) {
         updateEntities(dt);
-        // checkCollisions();
+        checkCollisions();
+    }
+    
+    /**
+     * See if any of the map items have been collided with by calling their update function
+     */
+    function checkCollisions(){
+    	gameData.allItems.forEach(function(item){
+    		if(item.update){
+    			item.update();
+    		}
+    	});
     }
 
     /* This is called by the update function and loops through all of the
