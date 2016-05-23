@@ -36,7 +36,7 @@ Enemy.prototype.update = function(dt) {
 	// Handle Collisions
 	if((player.x > this.x - collisionOffset && player.x < this.x - collisionOffset + this.width) && (player.y > this.y - collisionOffset && player.y < this.height + this.y - collisionOffset)){
 		player.setScore(player.score - this.pointDamage);
-		player.damage();
+		player.changeHealth(-1);
 		player.reset();
 	}
 	
@@ -99,13 +99,30 @@ Player.prototype.reset = function(){
 	this.y = this.height * 6 - 50;
 };
 
-Player.prototype.damage = function(){
+Player.prototype.changeHealth = function(change){
 	var livespanel = document.querySelector('#livespanel');
 	
-	if(livespanel.firstChild){
-		livespanel.removeChild(livespanel.firstChild);
+	if(change > 0){
+		for(var i = 0; i < change; i++){
+			var livesListItems = document.querySelectorAll('#livespanel li');
+			if(livesListItems.length === Player.maxLives){
+				return;
+			}
+			
+			var lifeListItem = document.createElement('li');
+			lifeListItem.className = 'playerLife';
+			lifeListItem.style.backgroundImage = 'url("' + this.sprite; '")';
+			livespanel.appendChild(lifeListItem);
+		}
 	} else {
-		endGame();
+		change *= -1;
+		for(var i = 0; i < change; i++){
+			if(livespanel.firstElementChild){
+				livespanel.removeChild(livespanel.firstElementChild);
+			} else {
+				endGame();
+			}
+		}		
 	}
 }
 
@@ -122,7 +139,6 @@ Player.prototype.resetLives = function(){
 		lifeListItem.style.backgroundImage = 'url("' + this.sprite; '")';
 		livespanel.appendChild(lifeListItem);
 	}
-	
 }
 
 /**
@@ -220,7 +236,17 @@ Player.prototype.render = function() {
  */
 var Item = function(){
 	this.sprite = null;
+	
+	this.x = this.width * this.getGridX();
+	this.y = this.height * this.getGridY();
+	
+	this.getSprite();
 }
+
+Item.prototype.getSprite = function(){
+	var spriteIndex = Math.round(Math.random() * (this.spriteList.length - 1));
+	this.sprite = this.spriteList[spriteIndex];	
+};
 
 /**
  * Draw the item on the canvas
@@ -259,6 +285,11 @@ Item.prototype.gridX = null;
 Item.prototype.gridY = null;
 
 /**
+ * The list of sprites representing this item.
+ */
+Item.prototype.spriteList = [];
+
+/**
  * An immobile structure on the map.
  * 
  * This is an Item that is typically considered some physical part of the map. They may allow some
@@ -267,7 +298,7 @@ Item.prototype.gridY = null;
  * @class
  */
 var Structure = function(){
-	
+	Item.call(this);
 }
 Structure.prototype = Object.create(Item.prototype);
 Structure.prototype.constructor = Structure;
@@ -281,6 +312,7 @@ Structure.prototype.constructor = Structure;
  */
 var Rock = function(){
 	this.sprite = 'images/Rock.png';
+	Structure.call(this);
 }
 Rock.prototype = Object.create(Structure.prototype);
 Rock.prototype.constructor = Rock;
@@ -294,7 +326,7 @@ Rock.prototype.constructor = Rock;
  * @class
  */
 var Pickup = function(){
-	
+	Item.call(this);
 }
 Pickup.prototype = Object.create(Item.prototype);
 Pickup.prototype.constructor = Pickup;
@@ -319,29 +351,53 @@ Pickup.prototype.update = function(){
  * 
  * A user can pick up a gem for extra points
  */
-var Gem = function(){
+var Gem = function(){	
 	this.width = 101;
 	this.height = 95;
-	
-	this.x = this.width * this.getGridX();
-	this.y = this.height * this.getGridY();
-	
+
 	this.spriteList = [
 	   'images/Gem Blue.png',
 	   'images/Gem Green.png',
 	   'images/Gem Orange.png'
 	];
 	
-	this.getSprite = function(){
-		var spriteIndex = Math.round(Math.random() * (this.spriteList.length - 1));
-		this.sprite = this.spriteList[spriteIndex];
-		this.points = 100 * (spriteIndex + 1);
-	};
+	Pickup.call(this);
 	
-	this.getSprite();
+	this.points = 100 * (this.spriteList.indexOf(this.sprite) + 1);
 }
 Gem.prototype = Object.create(Pickup.prototype);
 Gem.prototype.constructor = Gem;
+
+/**
+ * A heart pickup
+ * 
+ * Restores health and adds points.
+ */
+var Heart = function(){
+	this.width = 101;
+	this.height = 120;
+	
+	this.spriteList = [
+	  'images/Heart.png'
+	];
+	
+	Pickup.call(this);
+	
+	this.x = (this.width) * this.getGridX();
+	this.y = (this.height - 30) * this.getGridY();
+	
+	this.points = 300;
+};
+Heart.prototype = Object.create(Pickup.prototype);
+Heart.prototype.constructor = Heart;
+
+Heart.prototype.update = function(){
+	Pickup.prototype.update.call(this);
+	
+	if(this.gridX === player.getGridX() && this.gridY === player.getGridY()){
+		player.changeHealth(1);	
+	}
+};
 
 var player = null;
 var allEnemies = [];
@@ -372,18 +428,27 @@ function resetMap(){
  */
 function drawItems(){
 	if(gameData && gameData.allItems){
-		var gemCount;
-		for(gemCount = 0; gemCount <= 5; gemCount++){
-			var gem;
-			var gemExists = true;			
-			while(gemExists){
-				gem = new Gem;
-				gemExists = gameData.allItems.some(function(item){
-					return item.gridX === gem.gridX && item.gridY === gem.gridY; 
+		var newItemCount;
+		for(newItemCount = 0; newItemCount < 6; newItemCount++){
+			var newItem;			
+			var itemInPosition = true;			
+			while(itemInPosition){
+				var hasHeart = gameData.allItems.some(function(item){
+					return item instanceof Heart; 
+				});
+				
+				if(!hasHeart){
+					newItem = new Heart;
+				} else {
+					newItem = new Gem;
+				}
+				
+				itemInPosition = gameData.allItems.some(function(item){
+					return item.gridX === newItem.gridX && item.gridY === newItem.gridY; 
 				});
 			}
 			
-			gameData.allItems.push(gem);
+			gameData.allItems.push(newItem);
 		}
 	}	
 };
