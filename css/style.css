@@ -4,6 +4,51 @@
 body {
     text-align: center;
 }
+#canvasContainer{
+	width: 505px;
+	margin: 0 auto;
+}
+#canvasOverlay {
+    width: 505px;
+    height: 536px;
+    position: absolute;
+    background-color: rgba(0,0,0,0.5);
+    display: none;
+    top: 100px;
+    color: white;
+    font-family: Chewy;
+}
+
+#canvasOverlay.gameover {
+	display: block;
+	animation-name: gameover;
+	animation-duration: 3s;
+}
+
+@keyframes gameover {
+	from {
+		background-color: rgba(0,0,0,0);
+	}
+	
+	to {
+		background-color: rgba(0,0,0,0.5);
+	}
+}
+
+#main_caption {
+    vertical-align: middle;
+    height: 60px;
+    width: 300px;
+    display: inline-block;
+    font-size: 2em;
+}
+#bottom_caption {
+    display: inline-block;
+    width: 400px;
+    height: 28px;
+    position: relative;
+    bottom: 26px;
+}
 #dashboard{
 	margin: 0 auto;
 	position: relative;
@@ -16,6 +61,5 @@ body {
 }
 
 #score {
-	display: inline-block;
-	
+	display: inline-block;	
 }

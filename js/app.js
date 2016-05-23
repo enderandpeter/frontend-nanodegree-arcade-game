@@ -36,7 +36,7 @@ Enemy.prototype.update = function(dt) {
 	// Handle Collisions
 	if((player.x > this.x - collisionOffset && player.x < this.x - collisionOffset + this.width) && (player.y > this.y - collisionOffset && player.y < this.height + this.y - collisionOffset)){
 		player.setScore(player.score - this.pointDamage);
-		player.reset();
+		resetMap();
 	}
 	
 	if(this.x > ctx.canvas.width + this.width){
@@ -165,7 +165,7 @@ Player.prototype.handleInput = function(input){
 	}
 	
 	if(this.y === 0){
-		player.reset();
+		resetMap();
 	}
 };
 
@@ -307,12 +307,27 @@ var Gem = function(){
 Gem.prototype = Object.create(Pickup.prototype);
 Gem.prototype.constructor = Gem;
 
-player = new Player;
-allEnemies = [];
+var player = null;
+var allEnemies = [];
 var gameData = {
 	allItems : []	
 }
-resetItems();
+intializeMap();
+
+/**
+ * Initialize the map
+ */
+function intializeMap(){
+	player = new Player;
+	resetItems();
+}
+
+/**
+ * Reset the map
+ */
+function resetMap(){
+	player.reset();
+}
 
 /**
  * Draw all map items on the canvas
