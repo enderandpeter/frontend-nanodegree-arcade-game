@@ -100,12 +100,18 @@ Player.prototype.reset = function(){
 };
 
 /**
- * Update the player's score if it has reached the water
+ * Update the player's state
  */
 Player.prototype.update = function() {
+	// Raise the score if the player reached the water
 	if(this.y <= this.verticalOffset){
 		this.setScore(this.score + 100);
 		this.reset();
+	}
+	
+	// End the game if the player's points are less than zero
+	if(player.score < 0 && gameData.gameState !== 'ended'){
+		endGame();
 	}
 }
 
@@ -132,6 +138,10 @@ Player.prototype.getGridY = function(){
  * Handle the user's input to control the character
  */
 Player.prototype.handleInput = function(input){
+	if(gameData.gameState === 'ended'){
+		return;
+	}
+	
 	var position = null;
 	switch(input){		
 		case 'left':
@@ -310,7 +320,8 @@ Gem.prototype.constructor = Gem;
 var player = null;
 var allEnemies = [];
 var gameData = {
-	allItems : []	
+	allItems : [],
+	gameState: 'in-level' // in-level, ended, character-select
 }
 intializeMap();
 
@@ -358,6 +369,57 @@ function resetItems(){
 		gameData.allItems = [];
 		drawItems();
 	}
+}
+
+/**
+ * End the game and show the Game Over messages
+ */
+function endGame(){
+	var canvasOverlay = document.querySelector('#canvasOverlay');
+	var main_caption = document.createElement('div');
+	main_caption.id = 'main_caption';
+	main_caption.textContent = 'Game Over';
+	
+	var emptySpan = document.createElement('span');
+	emptySpan.className = 'empty';
+	
+	var bottom_caption = document.createElement('div');
+	bottom_caption.id = 'bottom_caption';
+	bottom_caption.textContent = 'Press any key to continue';
+	canvasOverlay.className = 'gameover';
+	
+	canvasOverlay.appendChild(main_caption);
+	canvasOverlay.appendChild(bottom_caption);
+	canvasOverlay.insertBefore(emptySpan, main_caption);	
+	
+	gameData.gameState = 'ended';
+	canvasOverlay.addEventListener('animationend', function(){
+		document.addEventListener('keyup', restartOnKeyUp);
+	});
+}
+
+function restartOnKeyUp(event){
+	if(gameData.gameState === 'ended'){
+		startGame();
+	}
+}
+
+/**
+ * Start the game
+ */
+function startGame(){
+	document.removeEventListener('keyup', restartOnKeyUp);
+	var canvasOverlay = document.querySelector('#canvasOverlay');
+	canvasOverlay.className = '';
+
+	// Clear the canvas overlay
+	while(canvasOverlay.firstChild){
+		canvasOverlay.removeChild(canvasOverlay.firstChild);
+	}
+	
+	gameData.gameState = 'in-level';
+	player.score = 0;
+	resetMap();
 }
 
 /*

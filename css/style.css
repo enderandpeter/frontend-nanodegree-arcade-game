@@ -12,7 +12,7 @@ body {
     width: 505px;
     height: 536px;
     position: absolute;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.8);
     display: none;
     top: 100px;
     color: white;
@@ -31,10 +31,15 @@ body {
 	}
 	
 	to {
-		background-color: rgba(0,0,0,0.5);
+		background-color: rgba(0,0,0,0.8);
 	}
 }
 
+.empty {
+    height: 100%;
+    vertical-align: middle;
+    display: inline-block;
+}
 #main_caption {
     vertical-align: middle;
     height: 60px;
