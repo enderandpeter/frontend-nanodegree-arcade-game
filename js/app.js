@@ -36,7 +36,8 @@ Enemy.prototype.update = function(dt) {
 	// Handle Collisions
 	if((player.x > this.x - collisionOffset && player.x < this.x - collisionOffset + this.width) && (player.y > this.y - collisionOffset && player.y < this.height + this.y - collisionOffset)){
 		player.setScore(player.score - this.pointDamage);
-		resetMap();
+		player.damage();
+		player.reset();
 	}
 	
 	if(this.x > ctx.canvas.width + this.width){
@@ -83,10 +84,11 @@ var Player = function(){
 	this.speed = 1;
 };
 
+Player.maxLives = 3;
+
 /**
  * Reset the player's position and set current score
  * 
- * @todo TODO: Place resetItems inside another function for resetting the map
  */
 Player.prototype.reset = function(){
 	// Display current score
@@ -95,9 +97,33 @@ Player.prototype.reset = function(){
 	// Initial location
 	this.x = this.width * 2;
 	this.y = this.height * 6 - 50;
-	
-	resetItems();
 };
+
+Player.prototype.damage = function(){
+	var livespanel = document.querySelector('#livespanel');
+	
+	if(livespanel.firstChild){
+		livespanel.removeChild(livespanel.firstChild);
+	} else {
+		endGame();
+	}
+}
+
+Player.prototype.resetLives = function(){
+	var livespanel = document.querySelector('#livespanel');
+	
+	while(livespanel.firstChild){
+		livespanel.removeChild(livespanel.firstChild);
+	}
+	
+	for(var i = 0; i < Player.maxLives; i++){
+		var lifeListItem = document.createElement('li');
+		lifeListItem.className = 'playerLife';
+		lifeListItem.style.backgroundImage = 'url("' + this.sprite; '")';
+		livespanel.appendChild(lifeListItem);
+	}
+	
+}
 
 /**
  * Update the player's state
@@ -106,7 +132,7 @@ Player.prototype.update = function() {
 	// Raise the score if the player reached the water
 	if(this.y <= this.verticalOffset){
 		this.setScore(this.score + 100);
-		this.reset();
+		resetMap();
 	}
 	
 	// End the game if the player's points are less than zero
@@ -330,13 +356,14 @@ intializeMap();
  */
 function intializeMap(){
 	player = new Player;
-	resetItems();
+	startGame();
 }
 
 /**
  * Reset the map
  */
 function resetMap(){
+	resetItems();
 	player.reset();
 }
 
@@ -419,6 +446,9 @@ function startGame(){
 	
 	gameData.gameState = 'in-level';
 	player.score = 0;
+	
+	// Reset the player's lives
+	player.resetLives();
 	resetMap();
 }
 

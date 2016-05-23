@@ -14,7 +14,7 @@ body {
     position: absolute;
     background-color: rgba(0,0,0,0.8);
     display: none;
-    top: 100px;
+    top: 129px;
     color: white;
     font-family: Chewy;
 }
@@ -63,6 +63,31 @@ body {
 	font-family: Chewy;
 	color: white;
 	font-size: 2em;
+}
+#scoreboard {
+	display: inline-block;
+}
+
+#livespanel{
+	margin: 0;
+	position: relative;
+    top: 15px;
+    height: 60px;
+}
+
+#livespanel, #livespanel li{
+	display: inline-block;
+	padding: 0;
+}
+
+#livespanel li{
+	list-style-type: none;
+	width: 45px;
+    height: 60px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    margin: 0;
 }
 
 #score {
