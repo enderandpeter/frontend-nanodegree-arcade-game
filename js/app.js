@@ -1,4 +1,6 @@
-// Enemies our player must avoid
+/**
+ * Enemies our player must avoid
+ */
 var Enemy = function() {
     // Variables applied to each of our instances go here,
     // we've provided one for you to get started
@@ -18,8 +20,11 @@ var Enemy = function() {
 	this.speed = (Math.random() + 1) * this.speed * 200;
 };
 
-// Update the enemy's position, required method for game
-// Parameter: dt, a time delta between ticks
+/**
+ * Update the enemy's position, required method for game
+ * 
+ * @param {Number} dt a time delta between ticks 
+ */
 Enemy.prototype.update = function(dt) {
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
@@ -39,16 +44,25 @@ Enemy.prototype.update = function(dt) {
 	}
 };
 
-// Draw the enemy on the screen, required method for game
+/**
+ * Draw the enemy on the screen, required method for game
+ */
 Enemy.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
+
 // Now write your own player class
 // This class requires an update(), render() and
 // a handleInput() method.
+
+/**
+ * A player the user controls.
+ * 
+ * @class
+ */
 var Player = function(){
-	// Load the iamge
+	// Load the image
 	this.sprite = 'images/char-boy.png';
 	this.width = 101;
 	this.height = 75;
@@ -69,6 +83,11 @@ var Player = function(){
 	this.speed = 1;
 };
 
+/**
+ * Reset the player's position and set current score
+ * 
+ * @todo TODO: Place resetItems inside another function for resetting the map
+ */
 Player.prototype.reset = function(){
 	// Display current score
 	this.setScore(this.score);
@@ -80,6 +99,9 @@ Player.prototype.reset = function(){
 	resetItems();
 };
 
+/**
+ * Update the player's score if it has reached the water
+ */
 Player.prototype.update = function() {
 	if(this.y <= this.verticalOffset){
 		this.setScore(this.score + 100);
@@ -87,10 +109,18 @@ Player.prototype.update = function() {
 	}
 }
 
+/**
+ * Get the player's x position on the sidewalk grid
+ * @returns {Number} The x grid coordinate on the sidewalk
+ */
 Player.prototype.getGridX = function(){
 	return Math.round(this.x / this.width);
 }
 
+/**
+ * Get the player's y position on the sidewalk grid
+ * @returns {Number} The y grid coordinate on the sidewalk	
+ */
 Player.prototype.getGridY = function(){
 	return Math.round(this.y / this.height);
 }
@@ -98,6 +128,9 @@ Player.prototype.getGridY = function(){
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
 
+/**
+ * Handle the user's input to control the character
+ */
 Player.prototype.handleInput = function(input){
 	var position = null;
 	switch(input){		
@@ -136,7 +169,9 @@ Player.prototype.handleInput = function(input){
 	}
 };
 
-// Draw the player on the screen
+/**
+ * Draw the player on the canvas
+ */
 Player.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
@@ -150,20 +185,41 @@ Player.prototype.render = function() {
 var Item = function(){
 	this.sprite = null;
 }
+
+/**
+ * Draw the item on the canvas
+ */
 Item.prototype.render = function(){
 	ctx.drawImage(Resources.get(this.sprite), this.x, this.y, this.width, this.height);
 }
 
+/**
+ * Initialize the item's x coordinate on the sidewalk grid
+ * @returns {Number} The item's x coordinate on the sidewalk grid
+ */
 Item.prototype.getGridX = function(){
 	this.gridX = Math.floor(Math.random() * 5); 
 	return this.gridX;
 }
+
+/**
+ * Initialize the item's y coordinate on the sidewalk grid
+ * @returns {Number} The item's y coordinate on the sidewalk grid
+ */
 Item.prototype.getGridY = function (){
 	this.gridY = Math.floor((Math.random() * 3) + 1); 
 	return this.gridY;
 }
 
+/**
+ * The item's x coordinate on the sidewalk grid
+ * @member {Number}
+ */
 Item.prototype.gridX = null;
+/**
+ * The item's y coordinate on the sidewalk grid
+ * @member {Number}
+ */
 Item.prototype.gridY = null;
 
 /**
@@ -171,6 +227,8 @@ Item.prototype.gridY = null;
  * 
  * This is an Item that is typically considered some physical part of the map. They may allow some
  * interaction, such as moving or consuming, but some such as Rocks are just there as obstacles.
+ * 
+ * @class
  */
 var Structure = function(){
 	
@@ -182,6 +240,8 @@ Structure.prototype.constructor = Structure;
  * A rock obstacle
  * 
  * This kind of Structure is an immobile one that makes the user choose other paths.
+ * 
+ * @class
  */
 var Rock = function(){
 	this.sprite = 'images/Rock.png';
@@ -194,6 +254,8 @@ Rock.prototype.constructor = Rock;
  * 
  * Pickups are Items that the user touches and immediately uses. They typically have beneficial properties,
  * but that is not a requirement.
+ * 
+ * @class
  */
 var Pickup = function(){
 	
@@ -202,7 +264,9 @@ Pickup.prototype = Object.create(Item.prototype);
 Pickup.prototype.constructor = Pickup;
 Pickup.prototype.points = 0;
 
-
+/**
+ * Detect collisions with players
+ */
 Pickup.prototype.update = function(){	
 	// Handle Collisions
 	if(this.gridX === player.getGridX() && this.gridY === player.getGridY()){
@@ -250,6 +314,9 @@ var gameData = {
 }
 resetItems();
 
+/**
+ * Draw all map items on the canvas
+ */
 function drawItems(){
 	if(gameData && gameData.allItems){
 		var gemCount;
@@ -268,6 +335,9 @@ function drawItems(){
 	}	
 };
 
+/**
+ * Clear the list of map items and remake them.
+ */
 function resetItems(){
 	if(gameData && gameData.allItems){
 		gameData.allItems = [];
@@ -275,6 +345,9 @@ function resetItems(){
 	}
 }
 
+/*
+ * Push enemies onto map every second. Keep a maximum of enemies.
+ */
 window.setInterval(function(){
 	
 	if(allEnemies.length < 6){
