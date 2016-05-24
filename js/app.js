@@ -1,4 +1,192 @@
 /**
+ * 
+ * Make a new SoundContrller
+ * 
+ * @constructor
+ * @this SoundController
+ * @classdesc Much borrowed from {@link https://www.udacity.com/course/cs255 Google's Udacity HTML 5 Game Development course} 
+*/
+function SoundController(){
+	/**
+	 * The sound clips to be controlled
+	 * @member {object}
+	 */
+	this.clips = {};
+	/**
+	 * Whether or not this controller is enabled
+	 * @member {boolean} 
+	 */
+	this.enabled = true;
+	/**
+	 * Represents all aspects of the sound played
+	 * @member {AudioContext}
+	 */
+	this.context = null;
+	/**
+	 * Used to control volume
+	 * @member {GainNode}
+	 */
+	this.mainNode = null;
+}
+
+/**
+ * Prepare the audio context
+ * @this SoundController
+ * @function SoundController#init
+ */
+SoundController.prototype.init = function(){
+	window.AudioContext = window.AudioContext || window.webkitAudioContext;
+	this.context = new AudioContext();;
+	this.mainNode = this.context.createGain();
+	this.mainNode.connect(this.context.destination);
+}
+
+/**
+ * Load the sound to be played
+ * 
+ * @this SoundController
+ * @function SoundController#load
+ * @param {string} path The location of the sound
+ * @param {function} callback The action to be performed on the sound
+ * @returns {Sound}
+ */
+SoundController.prototype.load = function(path, callback){
+	var thisSC = this;
+	if(!this.context){
+		this.init();
+	}
+	
+	if(sc.clips[path]){
+		callback(sc.clips[path].sound);
+		return sc.clips[path].sound;
+	}
+	
+	var clip = {
+		sound: new Sound(),
+		buffer: null,
+		loop: false
+	};
+	sc.clips[path] = clip;
+	clip.sound.path = path;
+	
+	var request = new XMLHttpRequest();
+	request.open('GET', path, true);
+	request.responseType = 'arraybuffer';
+	request.onload = function () {
+		thisSC.context.decodeAudioData(request.response, function(buffer){
+			thisSC.clips[path].buffer = buffer;
+			callback(sc.clips[path].sound);		
+		});
+	};
+
+	request.send();
+	
+	return clip.sound;
+};
+
+/**
+ * Actually play the sound
+ * @this SoundController
+ * @function SoundController#playSound
+ * @param {string} path The path to the sound
+ * @param {object} settings An object with properties set to the sound's settings
+ * @returns {boolean}
+ */
+SoundController.prototype.playSound = function(path, settings){
+	if(!sc.enabled) return false;
+	
+	var looping = false;
+	var volume = 1;
+	
+	if (settings) {
+		if (settings.looping) looping = settings.looping;
+		if (settings.volume) volume = settings.volume;
+	}
+	
+	var sd = this.clips[path];
+	if (sd === null) return false;
+
+	var currentClip = null;
+	
+	currentClip = this.context.createBufferSource();	
+	currentClip.buffer = sd.buffer;
+	this.mainNode.gain.value = volume;
+	currentClip.loop = looping;
+	
+	currentClip.connect(this.mainNode);
+	currentClip.start = currentClip.start || currentClip.noteOn;
+	currentClip.start(0);	
+};
+
+/**
+ * Get ready to play the sound at the passed in path
+ * 
+ * @param {string} path The location of the sound
+ * @param {boolean} loop Whether or not to loop the sound
+ * @this SoundController
+ * @function SoundController#play
+ */
+SoundController.prototype.play = function(path, loop){
+	return sc.load(path, function(sObj){
+		sObj.play(loop);
+	});
+};
+
+/**
+ * Mute or unmute the sound
+ * 
+ * @param {boolean} mute If true, then mute the sound
+ * @this SoundController
+ * @function SoundController#mute
+ */
+SoundController.prototype.mute = function(mute){
+	if(this.mainNode.gain.value > 0 || mute) {
+		this.mainNode.gain.value = 0;
+	}
+	else {
+		this.mainNode.gain.value = 1;
+	}
+};
+
+/**
+ * Stop all sounds
+ * 
+ * @this SoundController
+ * @function SoundController#stopAll
+ */
+SoundController.prototype.stopAll = function(){
+	this.mainNode.disconnect();
+	this.mainNode = this.context.createGainNode(0);
+	this.mainNode.connect(this.context.destination);
+};
+
+/**
+ *  Create a single sound
+ * 
+ * @constructor
+ * @this Sound
+ * @classdesc A single sound
+ */
+function Sound(){
+	/** The file path to this sound 
+	 * @member {string}
+	 * */
+	this.path = '';
+}
+
+/**
+ * Play this sound 
+ * 
+ * @param {boolean} loop Whether or not the sound will repeat indefinitely
+ * @this Sound
+ * @function Sound#play
+ */
+Sound.prototype.play = function(loop){
+	var settings = {volume: 1, looping: loop};
+	sc.playSound(this.path, settings);
+};
+
+/**
  * Enemies our player must avoid
  */
 var Enemy = function() {
@@ -172,6 +360,17 @@ Player.prototype.getGridX = function(){
 Player.prototype.getGridY = function(){
 	return Math.round(this.y / this.height);
 }
+
+/**
+ * The previous x position the player was at
+ */
+Player.prototype.prevX = null;
+
+/**
+ * The previous y position the player was at
+ */
+Player.prototype.prevY = null;
+
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
@@ -185,6 +384,10 @@ Player.prototype.handleInput = function(input){
 	}
 	
 	var position = null;
+	
+	this.prevX = this.x;
+	this.prevY = this.y;
+	
 	switch(input){		
 		case 'left':
 			var position = this.x - this.width;
@@ -310,12 +513,28 @@ Structure.prototype.constructor = Structure;
  * 
  * @class
  */
-var Rock = function(){
-	this.sprite = 'images/Rock.png';
+var Rock = function(){	
+	this.spriteList = ['images/Rock.png'];
+	this.width = 101;
+	this.height = 95;	
 	Structure.call(this);
+	
 }
 Rock.prototype = Object.create(Structure.prototype);
 Rock.prototype.constructor = Rock;
+
+/**
+ * Update when touching a rock
+ */
+Rock.prototype.update = function(){	
+	// Don't let the player move past a structure
+	if(this.gridX === player.getGridX() && this.gridY === player.getGridY()){
+		if(player.prevX !== null && player.prevY !== null){
+			player.x = player.prevX;
+			player.y = player.prevY;
+		}
+	}
+};
 
 /**
  * An Item that can consumed by a player
@@ -369,6 +588,17 @@ Gem.prototype = Object.create(Pickup.prototype);
 Gem.prototype.constructor = Gem;
 
 /**
+ * Update after picking up a gem
+ */
+Gem.prototype.update = function(){
+	Pickup.prototype.update.call(this);
+	
+	if(this.gridX === player.getGridX() && this.gridY === player.getGridY()){
+		sc.play('sounds/gem.wav');
+	}
+};
+
+/**
  * A heart pickup
  * 
  * Restores health and adds points.
@@ -391,10 +621,14 @@ var Heart = function(){
 Heart.prototype = Object.create(Pickup.prototype);
 Heart.prototype.constructor = Heart;
 
+/**
+ * Update after picking up a heart
+ */
 Heart.prototype.update = function(){
 	Pickup.prototype.update.call(this);
 	
 	if(this.gridX === player.getGridX() && this.gridY === player.getGridY()){
+		sc.play('sounds/heart.wav');
 		player.changeHealth(1);	
 	}
 };
@@ -405,6 +639,7 @@ var gameData = {
 	allItems : [],
 	gameState: 'in-level' // in-level, ended, character-select
 }
+var sc = new SoundController;
 intializeMap();
 
 /**
@@ -437,8 +672,14 @@ function drawItems(){
 					return item instanceof Heart; 
 				});
 				
+				var hasRock = gameData.allItems.some(function(item){
+					return item instanceof Rock; 
+				});
+				
 				if(!hasHeart){
 					newItem = new Heart;
+				} else if(!hasRock) {
+					newItem = new Rock;
 				} else {
 					newItem = new Gem;
 				}
