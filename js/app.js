@@ -156,7 +156,7 @@ SoundController.prototype.mute = function(mute){
  */
 SoundController.prototype.stopAll = function(){
 	this.mainNode.disconnect();
-	this.mainNode = this.context.createGainNode(0);
+	this.mainNode = this.context.createGain(0);
 	this.mainNode.connect(this.context.destination);
 };
 
@@ -776,6 +776,7 @@ function resetItems(){
  * End the game and show the Game Over messages
  */
 function endGame(){
+	sc.stopAll();
 	var playerSelectListView = document.querySelector('#playerSelectList');
 	var playerSelectListContainer = document.querySelector('#playerSelectListContainer');
 	playerSelectListContainer.appendChild(playerSelectListView);
@@ -825,6 +826,7 @@ function startGame(){
 	if(gameData.gameState() === 'ended' || gameData.gameState() === 'character-select'){		
 		// Start character selection
 		gameData.gameState('character-select');
+		sc.play('sounds/music.wav', true);
 		main_caption.appendChild(playerSelectListView);
 		
 		if(!selectedCharacterData.length){
