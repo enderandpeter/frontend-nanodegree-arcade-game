@@ -369,7 +369,7 @@ Player.prototype.prevY = null;
 /**
  * Handle the user's input to control the character
  */
-Player.prototype.handleInput = function(input){
+Player.prototype.handleInput = function(input){	
 	var playerSelectListView = document.querySelector('#playerSelectList');
 	
 	if(gameData.gameState() === 'ended'){
@@ -835,6 +835,7 @@ function endGame(){
 }
 
 function restartOnKeyUp(event){
+	event.preventDefault();
 	if(gameData.gameState() === 'ended'){
 		gameData.gameState('character-select');
 		startGame();
@@ -894,23 +895,24 @@ function startGame(){
 /*
  * Push enemies onto map every second. Keep a maximum of enemies.
  */
-window.setInterval(function(){
-	
+window.setInterval(function(){	
 	if(allEnemies.length < 6){
 		allEnemies.push(new Enemy);
-	}
-	
+	}	
 }, 1000);
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
-document.addEventListener('keyup', function(e) {
-    var allowedKeys = {
+document.addEventListener('keyup', function(e) {    
+	var allowedKeys = {
         37: 'left',
         38: 'up',
         39: 'right',
         40: 'down'
     };
 
-    player.handleInput(allowedKeys[e.keyCode]);
+    player.handleInput(allowedKeys[e.keyCode], e);
+   
+    e.preventDefault();
+    return false;
 });

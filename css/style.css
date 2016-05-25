@@ -4,12 +4,17 @@
 body {
     text-align: center;
 }
-h2 {
-    margin: 0;
-    position: absolute;
-    width: 200px;
-    color: white;
-    text-shadow: gray 5px 8px;
+#volumeControls{
+	width: 505px;
+}
+
+#volumeControls > div{
+	float: left
+}
+
+#volumeControls > button{
+	float: right;
+	font-size: 1em;
 }
 #canvasContainer{
 	width: 505px;
@@ -21,7 +26,7 @@ h2 {
     height: 536px;
     position: absolute;    
     display: none;
-    top: 121px;
+    top: 50px;
     color: white;
     font-family: Chewy;
 }
@@ -105,6 +110,14 @@ h2 {
 #playerSelectListContainer{
 	display: none;
 }
+#playerSelectList h2 {
+    margin: 0;
+    position: absolute;
+    width: 200px;
+    color: white;
+    text-shadow: gray 5px 8px;
+    font-size: 1.6em;
+}
 #player_selection {
 	height: 310px;
     width: 280px;
@@ -166,8 +179,8 @@ h2 {
 }
 #dashboard{
 	margin: 0 auto;
-	position: relative;
-	top: 3em;
+	position: absolute;
+	top: 1em;
 	width: 505px;
 	text-align: right;
 	font-family: Chewy;
