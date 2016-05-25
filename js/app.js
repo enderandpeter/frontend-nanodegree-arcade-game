@@ -225,6 +225,7 @@ Enemy.prototype.update = function(dt) {
 	if((player.x > this.x - collisionOffset && player.x < this.x - collisionOffset + this.width) && (player.y > this.y - collisionOffset && player.y < this.height + this.y - collisionOffset)){
 		player.score(player.score() - this.pointDamage);
 		player.changeHealth(-1);
+		sc.play('sounds/hit.wav');
 		player.reset();
 	}
 	
@@ -381,6 +382,7 @@ Player.prototype.handleInput = function(input){
 	switch(input){		
 		case 'left':
 			if(gameData.gameState() === 'character-select'){ // Choose character
+				sc.play('sounds/menu_nav.wav');
 				var selectedCharacter = document.querySelector('.playerBox.selected');
 				if(selectedCharacter.previousElementSibling){
 					var newSelection = selectedCharacter.previousElementSibling;
@@ -390,6 +392,7 @@ Player.prototype.handleInput = function(input){
 				}
 				return;
 			}
+			sc.play('sounds/move.wav');
 			var position = this.x - this.width;
 			if(position >= 0){
 				this.x = position;
@@ -398,6 +401,7 @@ Player.prototype.handleInput = function(input){
 		break;
 		case 'right':
 			if(gameData.gameState() === 'character-select'){  // Choose character
+				sc.play('sounds/menu_nav.wav');
 				var selectedCharacter = document.querySelector('.playerBox.selected');
 				if(selectedCharacter.nextElementSibling){
 					var newSelection = selectedCharacter.nextElementSibling;
@@ -407,6 +411,7 @@ Player.prototype.handleInput = function(input){
 				}
 				return;
 			}
+			sc.play('sounds/move.wav');
 			var position = this.x + this.width;
 			if(position < ctx.canvas.width){
 				this.x = position;
@@ -419,6 +424,7 @@ Player.prototype.handleInput = function(input){
 				startGame();
 				return;
 			}
+			sc.play('sounds/move.wav');
 			var position = this.y - this.height - this.verticalOffset;
 			if(position > -this.height){ // Allow player to potentially stand in water
 				this.y = position;
@@ -431,6 +437,7 @@ Player.prototype.handleInput = function(input){
 				startGame();
 				return;
 			}
+			sc.play('sounds/move.wav');
 			var position = this.y + this.height + this.verticalOffset;
 			if(position < ctx.canvas.height -  2 * this.height){
 				this.y = position;
@@ -653,6 +660,9 @@ Heart.prototype.update = function(){
 	}
 };
 
+/**
+ * A list of players to start the game with
+ */
 var PlayerSelectList = function(){
 	this.characters = ko.observableArray([]);
 	this.active = ko.observable(false);
@@ -664,6 +674,9 @@ var PlayerSelectList = function(){
 		this.characters()[characterIndex].selected(true);
 	};
 	
+	/*
+	 * An initial list of characters from which the main characters array is created
+	 */
 	var characterList = {
 		'boy': 'Boy',
 		'cat-girl': 'Cat Girl',
@@ -810,6 +823,7 @@ function startGame(){
 	});
 	
 	if(gameData.gameState() === 'ended' || gameData.gameState() === 'character-select'){		
+		// Start character selection
 		gameData.gameState('character-select');
 		main_caption.appendChild(playerSelectListView);
 		
