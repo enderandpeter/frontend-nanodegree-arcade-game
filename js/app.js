@@ -223,7 +223,7 @@ Enemy.prototype.update = function(dt) {
 	
 	// Handle Collisions
 	if((player.x > this.x - collisionOffset && player.x < this.x - collisionOffset + this.width) && (player.y > this.y - collisionOffset && player.y < this.height + this.y - collisionOffset)){
-		player.setScore(player.score - this.pointDamage);
+		player.score(player.score() - this.pointDamage);
 		player.changeHealth(-1);
 		player.reset();
 	}
@@ -256,16 +256,7 @@ var Player = function(){
 	this.width = 101;
 	this.height = 75;
 	this.verticalOffset = 15;
-	this.score = 0;
-	this.setScore = function(newScore){
-		this.score = newScore;
-		var scoreBoardElement = document.querySelector(this.viewIds.scoreBoardId);
-		scoreBoardElement.textContent = this.score;
-	};
-	this.viewIds = {
-		scoreBoardId : '#score'	
-	};
-	
+	this.score = ko.observable(0);	
 	
 	// Initial location
 	this.reset();
@@ -278,10 +269,7 @@ Player.maxLives = 3;
  * Reset the player's position and set current score
  * 
  */
-Player.prototype.reset = function(){
-	// Display current score
-	this.setScore(this.score);
-	
+Player.prototype.reset = function(){	
 	// Initial location
 	this.x = this.width * 2;
 	this.y = this.height * 6 - 50;
@@ -335,12 +323,12 @@ Player.prototype.resetLives = function(){
 Player.prototype.update = function() {
 	// Raise the score if the player reached the water
 	if(this.y <= this.verticalOffset){
-		this.setScore(this.score + 100);
+		this.score(this.score() + 100);
 		resetMap();
 	}
 	
 	// End the game if the player's points are less than zero
-	if(player.score < 0 && gameData.gameState !== 'ended'){
+	if(player.score() < 0 && gameData.gameState() !== 'character-select' && gameData.gameState() !== 'ended'){
 		endGame();
 	}
 }
@@ -379,7 +367,9 @@ Player.prototype.prevY = null;
  * Handle the user's input to control the character
  */
 Player.prototype.handleInput = function(input){
-	if(gameData.gameState === 'ended'){
+	var playerSelectListView = document.querySelector('#playerSelectList');
+	
+	if(gameData.gameState() === 'ended'){
 		return;
 	}
 	
@@ -390,6 +380,16 @@ Player.prototype.handleInput = function(input){
 	
 	switch(input){		
 		case 'left':
+			if(gameData.gameState() === 'character-select'){ // Choose character
+				var selectedCharacter = document.querySelector('.playerBox.selected');
+				if(selectedCharacter.previousElementSibling){
+					var newSelection = selectedCharacter.previousElementSibling;
+					var offsetLeft = selectedCharacter.previousElementSibling.offsetLeft;
+					playerSelectListView.style.right = offsetLeft - 50 + 'px';
+					playerSelectList.selectCharacter(newSelection);
+				}
+				return;
+			}
 			var position = this.x - this.width;
 			if(position >= 0){
 				this.x = position;
@@ -397,6 +397,16 @@ Player.prototype.handleInput = function(input){
 			}
 		break;
 		case 'right':
+			if(gameData.gameState() === 'character-select'){  // Choose character
+				var selectedCharacter = document.querySelector('.playerBox.selected');
+				if(selectedCharacter.nextElementSibling){
+					var newSelection = selectedCharacter.nextElementSibling;
+					var offsetLeft = selectedCharacter.nextElementSibling.offsetLeft;
+					playerSelectListView.style.right = offsetLeft - 50 + 'px';		
+					playerSelectList.selectCharacter(newSelection);
+				}
+				return;
+			}
 			var position = this.x + this.width;
 			if(position < ctx.canvas.width){
 				this.x = position;
@@ -404,6 +414,11 @@ Player.prototype.handleInput = function(input){
 			}
 		break;
 		case 'up':
+			if(gameData.gameState() === 'character-select'){ // Select character
+				gameData.gameState('in-level');
+				startGame();
+				return;
+			}
 			var position = this.y - this.height - this.verticalOffset;
 			if(position > -this.height){ // Allow player to potentially stand in water
 				this.y = position;
@@ -411,6 +426,11 @@ Player.prototype.handleInput = function(input){
 			}
 		break;
 		case 'down':
+			if(gameData.gameState() === 'character-select'){  // Select character
+				gameData.gameState('in-level');
+				startGame();
+				return;
+			}
 			var position = this.y + this.height + this.verticalOffset;
 			if(position < ctx.canvas.height -  2 * this.height){
 				this.y = position;
@@ -558,7 +578,7 @@ Pickup.prototype.update = function(){
 	// Handle Collisions
 	if(this.gridX === player.getGridX() && this.gridY === player.getGridY()){
 		if(this.points){
-			player.setScore(player.score + this.points);
+			player.score(player.score() + this.points);
 		}
 		
 		gameData.allItems.splice(gameData.allItems.indexOf(this), 1);	
@@ -633,12 +653,44 @@ Heart.prototype.update = function(){
 	}
 };
 
+var PlayerSelectList = function(){
+	this.characters = ko.observableArray([]);
+	this.active = ko.observable(false);
+	this.selectCharacter = function(li){
+		var characterIndex = Array.prototype.indexOf.call(document.querySelectorAll('.playerBox'), li);
+		this.characters().map(function(character){
+			character.selected(false);
+		});
+		this.characters()[characterIndex].selected(true);
+	};
+	
+	var characterList = {
+		'boy': 'Boy',
+		'cat-girl': 'Cat Girl',
+		'horn-girl': 'Horn Girl',
+		'pink-girl': 'Pink Girl',
+		'princess-girl': 'Princess'
+	};
+	
+	for(var characterId in characterList){
+		var characterName = characterList[characterId];
+		this.characters.push({
+			name: characterName,
+			id: characterId,
+			imageUrl: 'images/char-' + characterId + '.png',
+			selected: ko.observable(false)
+		});
+	}
+};
+
 var player = null;
+var playerSelectList = new PlayerSelectList;
 var allEnemies = [];
 var gameData = {
 	allItems : [],
-	gameState: 'in-level' // in-level, ended, character-select
+	gameState: ko.observable('character-select') // in-level, ended, character-select
 }
+ko.applyBindings(playerSelectList, document.querySelector('#playerSelectList'));
 var sc = new SoundController;
 intializeMap();
 
@@ -647,6 +699,9 @@ intializeMap();
  */
 function intializeMap(){
 	player = new Player;
+	ko.applyBindings(gameData, document.querySelector('#canvasOverlay'))
+	ko.applyBindings(gameData, document.querySelector('#playerSelectCursor'));
+	ko.applyBindings(player, document.querySelector('#dashboard'));
 	startGame();
 }
 
@@ -708,31 +763,29 @@ function resetItems(){
  * End the game and show the Game Over messages
  */
 function endGame(){
+	var playerSelectListView = document.querySelector('#playerSelectList');
+	var playerSelectListContainer = document.querySelector('#playerSelectListContainer');
+	playerSelectListContainer.appendChild(playerSelectListView);
+	
 	var canvasOverlay = document.querySelector('#canvasOverlay');
-	var main_caption = document.createElement('div');
-	main_caption.id = 'main_caption';
+	var main_caption = document.querySelector('#main_caption');
 	main_caption.textContent = 'Game Over';
 	
-	var emptySpan = document.createElement('span');
-	emptySpan.className = 'empty';
+	var emptySpan = document.querySelector('#canvasOverlay span.empty');
 	
-	var bottom_caption = document.createElement('div');
-	bottom_caption.id = 'bottom_caption';
+	var bottom_caption = document.querySelector('#bottom_caption');
 	bottom_caption.textContent = 'Press any key to continue';
 	canvasOverlay.className = 'gameover';
 	
-	canvasOverlay.appendChild(main_caption);
-	canvasOverlay.appendChild(bottom_caption);
-	canvasOverlay.insertBefore(emptySpan, main_caption);	
-	
-	gameData.gameState = 'ended';
+	gameData.gameState('ended');
 	canvasOverlay.addEventListener('animationend', function(){
 		document.addEventListener('keyup', restartOnKeyUp);
 	});
 }
 
 function restartOnKeyUp(event){
-	if(gameData.gameState === 'ended'){
+	if(gameData.gameState() === 'ended'){
+		gameData.gameState('character-select');
 		startGame();
 	}
 }
@@ -743,15 +796,40 @@ function restartOnKeyUp(event){
 function startGame(){
 	document.removeEventListener('keyup', restartOnKeyUp);
 	var canvasOverlay = document.querySelector('#canvasOverlay');
-	canvasOverlay.className = '';
-
-	// Clear the canvas overlay
-	while(canvasOverlay.firstChild){
-		canvasOverlay.removeChild(canvasOverlay.firstChild);
+	var main_caption = document.querySelector('#main_caption');
+	var playerSelectListView = document.querySelector('#playerSelectList');
+	var playerSelectListContainer = document.querySelector('#playerSelectListContainer');
+	
+	// Clear the canvas overlay's main caption
+	while(main_caption.firstChild){
+		main_caption.removeChild(main_caption.firstChild);
 	}
 	
-	gameData.gameState = 'in-level';
-	player.score = 0;
+	var selectedCharacterData = playerSelectList.characters().filter(function(element){
+		return element.selected();
+	});
+	
+	if(gameData.gameState() === 'ended' || gameData.gameState() === 'character-select'){		
+		gameData.gameState('character-select');
+		main_caption.appendChild(playerSelectListView);
+		
+		if(!selectedCharacterData.length){
+			playerSelectList.characters()[0].selected(true);
+		}
+		
+		playerSelectList.active(true);
+		return;
+	}
+	
+	playerSelectListContainer.appendChild(playerSelectListView);
+	gameData.gameState('in-level');
+	
+	var selectedCharacterData = playerSelectList.characters().filter(function(element){
+		return element.selected();
+	});
+	
+	player.sprite = selectedCharacterData[0].imageUrl; 
+	player.score(0);
 	
 	// Reset the player's lives
 	player.resetLives();

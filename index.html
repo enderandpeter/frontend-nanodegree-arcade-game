@@ -8,18 +8,32 @@
 <body>
 	
 	<div id="canvasContainer">
+	<div id="playerSelectCursor" data-bind="css: { active: gameState() === 'character-select' }"></div>
 	<div id="dashboard">
 	  <ul id="livespanel">
 	  </ul>
 	  <div id="scoreboard">
 	  	<span id="scorelabel">Score: </span>
-	  	<div id="score">1000</div>
+	  	<div id="score" data-bind="text: score">1000</div>
 	  </div>
 	  
 	</div>
-		<div id="canvasOverlay">			
+		<div id="canvasOverlay" data-bind="css: {gameover: gameState() === 'ended', 'character-select': gameState() === 'character-select', active: gameState() !== 'in-level'}">
+			<span class="empty"></span><div id="main_caption" data-bind="css: {playerSelect: gameState() === 'character-select'}">				
+			</div>
+			<div id="bottom_caption"></div>			
 		</div>
 	</div>
+	
+	<div id="playerSelectListContainer">
+		<ul id="playerSelectList" style="right: 0px;" data-bind="css: { active: active }, foreach: characters">
+			<li class="playerBox" data-bind="css: { selected: selected() }, attr: { id: id}">
+				<h2 data-bind="text: name"></h2>
+			</li>
+		</ul>
+	</div>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
     <script src="js/resources.js"></script>
     <script src="js/app.js"></script>
     <script src="js/engine.js"></script>
