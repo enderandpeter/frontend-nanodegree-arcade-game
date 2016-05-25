@@ -728,7 +728,7 @@ var gameData = {
 				sc.stopAll();
 				gameData.gameSettings.musicOn(false);
 			} else {
-				sc.play('sounds/music.wav', true);
+				sc.play('sounds/music.mp3', true);
 				gameData.gameSettings.musicOn(true);
 			}
 			return true;
@@ -864,7 +864,7 @@ function startGame(){
 		// Start character selection
 		gameData.gameState('character-select');
 		if(gameData.gameSettings.musicOn()){
-			sc.play('sounds/music.wav', true);
+			sc.play('sounds/music.mp3', true);
 		}
 		main_caption.appendChild(playerSelectListView);
 		
