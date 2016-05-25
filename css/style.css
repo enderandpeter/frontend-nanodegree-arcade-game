@@ -161,6 +161,9 @@ h2 {
     position: relative;
     bottom: 26px;
 }
+#volumeControls {
+    position: absolute;
+}
 #dashboard{
 	margin: 0 auto;
 	position: relative;

@@ -225,7 +225,9 @@ Enemy.prototype.update = function(dt) {
 	if((player.x > this.x - collisionOffset && player.x < this.x - collisionOffset + this.width) && (player.y > this.y - collisionOffset && player.y < this.height + this.y - collisionOffset)){
 		player.score(player.score() - this.pointDamage);
 		player.changeHealth(-1);
-		sc.play('sounds/hit.wav');
+		if(gameData.gameSettings.soundOn()){
+			sc.play('sounds/hit.wav');
+		}		
 		player.reset();
 	}
 	
@@ -382,7 +384,9 @@ Player.prototype.handleInput = function(input){
 	switch(input){		
 		case 'left':
 			if(gameData.gameState() === 'character-select'){ // Choose character
-				sc.play('sounds/menu_nav.wav');
+				if(gameData.gameSettings.soundOn()){
+					sc.play('sounds/menu_nav.wav');
+				}					
 				var selectedCharacter = document.querySelector('.playerBox.selected');
 				if(selectedCharacter.previousElementSibling){
 					var newSelection = selectedCharacter.previousElementSibling;
@@ -392,7 +396,9 @@ Player.prototype.handleInput = function(input){
 				}
 				return;
 			}
-			sc.play('sounds/move.wav');
+			if(gameData.gameSettings.soundOn()){
+				sc.play('sounds/move.wav');
+			}			
 			var position = this.x - this.width;
 			if(position >= 0){
 				this.x = position;
@@ -401,7 +407,9 @@ Player.prototype.handleInput = function(input){
 		break;
 		case 'right':
 			if(gameData.gameState() === 'character-select'){  // Choose character
-				sc.play('sounds/menu_nav.wav');
+				if(gameData.gameSettings.soundOn()){
+					sc.play('sounds/menu_nav.wav');
+				}
 				var selectedCharacter = document.querySelector('.playerBox.selected');
 				if(selectedCharacter.nextElementSibling){
 					var newSelection = selectedCharacter.nextElementSibling;
@@ -411,7 +419,9 @@ Player.prototype.handleInput = function(input){
 				}
 				return;
 			}
-			sc.play('sounds/move.wav');
+			if(gameData.gameSettings.soundOn()){
+				sc.play('sounds/move.wav');
+			}			
 			var position = this.x + this.width;
 			if(position < ctx.canvas.width){
 				this.x = position;
@@ -424,7 +434,9 @@ Player.prototype.handleInput = function(input){
 				startGame();
 				return;
 			}
-			sc.play('sounds/move.wav');
+			if(gameData.gameSettings.soundOn()){
+				sc.play('sounds/move.wav');
+			}
 			var position = this.y - this.height - this.verticalOffset;
 			if(position > -this.height){ // Allow player to potentially stand in water
 				this.y = position;
@@ -437,7 +449,9 @@ Player.prototype.handleInput = function(input){
 				startGame();
 				return;
 			}
-			sc.play('sounds/move.wav');
+			if(gameData.gameSettings.soundOn()){
+				sc.play('sounds/move.wav');
+			}
 			var position = this.y + this.height + this.verticalOffset;
 			if(position < ctx.canvas.height -  2 * this.height){
 				this.y = position;
@@ -621,7 +635,9 @@ Gem.prototype.update = function(){
 	Pickup.prototype.update.call(this);
 	
 	if(this.gridX === player.getGridX() && this.gridY === player.getGridY()){
-		sc.play('sounds/gem.wav');
+		if(gameData.gameSettings.soundOn()){
+			sc.play('sounds/gem.wav');
+		}
 	}
 };
 
@@ -655,7 +671,9 @@ Heart.prototype.update = function(){
 	Pickup.prototype.update.call(this);
 	
 	if(this.gridX === player.getGridX() && this.gridY === player.getGridY()){
-		sc.play('sounds/heart.wav');
+		if(gameData.gameSettings.soundOn()){
+			sc.play('sounds/heart.wav');
+		}		
 		player.changeHealth(1);	
 	}
 };
@@ -701,7 +719,25 @@ var playerSelectList = new PlayerSelectList;
 var allEnemies = [];
 var gameData = {
 	allItems : [],
-	gameState: ko.observable('character-select') // in-level, ended, character-select
+	gameState: ko.observable('character-select'), // in-level, ended, character-select
+	gameSettings: {
+		musicOn: ko.observable(true),
+		soundOn: ko.observable(true),
+		toggleMusic: function(data, event){
+			if(gameData.gameSettings.musicOn()){
+				sc.stopAll();
+				gameData.gameSettings.musicOn(false);
+			} else {
+				sc.play('sounds/music.wav', true);
+				gameData.gameSettings.musicOn(true);
+			}
+			return true;
+		},
+		toggleSound: function(data, event){
+			gameData.gameSettings.soundOn(!gameData.gameSettings.soundOn());
+			return true;
+		}
+	}
 }
 ko.applyBindings(playerSelectList, document.querySelector('#playerSelectList'));
 var sc = new SoundController;
@@ -714,6 +750,7 @@ function intializeMap(){
 	player = new Player;
 	ko.applyBindings(gameData, document.querySelector('#canvasOverlay'))
 	ko.applyBindings(gameData, document.querySelector('#playerSelectCursor'));
+	ko.applyBindings(gameData, document.querySelector('#volumeControls'));
 	ko.applyBindings(player, document.querySelector('#dashboard'));
 	startGame();
 }
@@ -826,7 +863,9 @@ function startGame(){
 	if(gameData.gameState() === 'ended' || gameData.gameState() === 'character-select'){		
 		// Start character selection
 		gameData.gameState('character-select');
-		sc.play('sounds/music.wav', true);
+		if(gameData.gameSettings.musicOn()){
+			sc.play('sounds/music.wav', true);
+		}
 		main_caption.appendChild(playerSelectListView);
 		
 		if(!selectedCharacterData.length){

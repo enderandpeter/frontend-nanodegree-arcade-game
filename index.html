@@ -9,6 +9,16 @@
 	
 	<div id="canvasContainer">
 	<div id="playerSelectCursor" data-bind="css: { active: gameState() === 'character-select' }"></div>
+	<div id="volumeControls">    
+	  <div id="musicControlContainer">
+	  	<label for="musicControl">Music</label>
+	    <input type="checkbox" id="musicControl" value="Music" data-bind="checked: gameSettings.musicOn(), click: gameSettings.toggleMusic">
+	  </div>
+	  <div>
+	    <label for="soundControl">Sound</label>
+	  	<input type="checkbox" id="soundControl" value="Sound" data-bind="checked: gameSettings.soundOn(), click: gameSettings.toggleSound">
+	  </div>    
+    </div>
 	<div id="dashboard">
 	  <ul id="livespanel">
 	  </ul>
